@@ -1,0 +1,34 @@
+{
+  "onboarding": [
+    {
+      "image": "assets/images/img_onboarding1.png",
+      "title": "Support Your Favorite Finalist",
+      "desc": "Be Part of Your Favorite Finalists' Journey to Victory"
+    },
+    {
+      "image": "assets/images/img_onboarding2.png",
+      "title": "Discover Your Favorite Event",
+      "desc": "Bringing you unforgettable experiences in every special moment"
+    },
+    {
+      "image": "assets/images/img_onboarding3.png",
+      "title": "Enjoy the Convenience of Kreen",
+      "desc": "All Your Needs in One Kreen App"
+    }
+  ],
+
+  "dialog_title" : "Choose Language",
+
+  "lewati" : "Lewati",
+  "lanjut" : "Lanjut",
+  "selesai" : "Selesai",
+  "login_now": "Login",
+  "guest_login": "Login as Guest",
+  "login_as": "or Login with",
+
+  "input_email": "Email or Phone number",
+  "input_password": "Password",
+  "lupa_password": "Forget password?",
+  "belum": "Don't have a Kreen account yet? ",
+  "daftar": "Register"
+}

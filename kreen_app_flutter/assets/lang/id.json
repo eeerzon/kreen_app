@@ -1,0 +1,35 @@
+{
+  "onboarding": [
+    {
+      "image": "assets/images/img_onboarding1.png",
+      "title": "Dukung Finalis Favoritmu",
+      "desc": "Jadilah Bagian dari Perjalanan para finalis favoritmu Menuju Kemenangan"
+    },
+    {
+      "image": "assets/images/img_onboarding2.png",
+      "title": "Temukan Event Favoritmu",
+      "desc": "Menghadirkan Pengalaman Tak Terlupakan di Setiap Momen Spesialmu"
+    },
+    {
+      "image": "assets/images/img_onboarding3.png",
+      "title": "Nikmati Kemudahan Aplikasi Kreen",
+      "desc": "Semua Kebutuhan Anda dalam Satu Aplikasi Kreen"
+    }
+  ],
+
+  "dialog_title" : "Pilih bahasa",
+
+  "lewati" : "Lewati",
+  "lanjut" : "Lanjut",
+  "selesai" : "Selesai",
+  "login_now": "Masuk Sekarang",
+  "guest_login": "Masuk Sebagai Tamu",
+  "login_as": "Atau masuk dengan",
+
+  "input_email": "Masukkan no telepon atau email",
+  "input_password": "Masukkan kata sandi",
+  "lupa_password": "Lupa kata sandi?",
+  "belum": "Belum punya akun Kreen? ",
+  "daftar": "Daftar"
+
+}
