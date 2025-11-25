@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
-import '/services/lang_service.dart';
-import 'home_page.dart';
-import 'login_page.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:kreen_app_flutter/services/api_services.dart';
+import 'package:kreen_app_flutter/widgets/loading_page.dart';
 
 class RegisPage extends StatefulWidget {
   const RegisPage({super.key});
@@ -13,6 +13,7 @@ class RegisPage extends StatefulWidget {
 }
 
 class _RegisPageState extends State<RegisPage> {
+  final prefs = FlutterSecureStorage();
 
   final _namaController = TextEditingController();
   final _emailController = TextEditingController();
@@ -28,6 +29,11 @@ class _RegisPageState extends State<RegisPage> {
       _phoneController.text.isNotEmpty &&
       _passwordController.text.isNotEmpty &&
       _confirmpasswordController.text.isNotEmpty;
+
+  bool isValidPhone(String phone) {
+    final regex = RegExp(r'^08[0-9]{8,11}$');
+    return regex.hasMatch(phone);
+  }
   
   OutlineInputBorder _border(bool isFilled) {
     return OutlineInputBorder(
@@ -39,47 +45,45 @@ class _RegisPageState extends State<RegisPage> {
     );
   }
 
-  void _doLogin() async {
-    // loading
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.noHeader,
-      dismissOnTouchOutside: false,
-      dismissOnBackKeyPress: false,
-      body: Column(
-        children: const [
-          CircularProgressIndicator(color: Colors.red),
-          SizedBox(height: 16),
-          Text("Loading..."),
-        ],
-      ),
-    ).show();
+  void _doRegis() async {
+    showLoadingDialog(context);
 
-    await Future.delayed(const Duration(seconds: 2)); // simulasi proses login
+    final body = {
+      "email": _emailController.text,
+      "name": _namaController.text,
+      "phone": _phoneController.text,
+      "password": _passwordController.text,
+      "password_confirmation": _confirmpasswordController.text
+    };
+
+    final result = await ApiService.post("/register", body: body);
+    bool isSukses = result!['success'];
 
     if (!mounted) return;
+    Navigator.pop(context);
 
-    Navigator.pop(context); // tutup dialog loading
-
-    // Cek login dummy
-    if (_emailController.text == "admin" &&
-        _passwordController.text == "1234") {
-      // Berhasil
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+    if (isSukses) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.success,
+        title: 'Sukses',
+        desc: result['message'],
+        transitionAnimationDuration: const Duration(milliseconds: 400),
+        autoHide: const Duration(seconds: 1),
+      ).show().then((_) {
+        Navigator.pop(context);
+      });
     } else {
-      // Gagal
       AwesomeDialog(
         context: context,
         dialogType: DialogType.error,
         title: 'Gagal',
-        desc: 'Username atau password salah!',
+        desc: result['message'] ?? 'Registrasi gagal',
         btnOkOnPress: () {},
       ).show();
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -87,62 +91,18 @@ class _RegisPageState extends State<RegisPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        toolbarHeight: 0,
+        title: Text("Daftar Kreen"),
+        centerTitle: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
 
-      body: Column(
+      body: Stack(
         children: [
-          //top nav
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              children: <Widget> [
-                //button
-                Align(
-                  alignment: Alignment.topLeft, // posisi di kiri
-                  child: Row(
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor: Colors.white,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () async {
-                          await Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const LoginPage()),
-                          );
-                        },
-                        child: const Text(
-                          "<",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      //text
-                      Container(
-                        margin: const EdgeInsets.only(left: 20),
-                        child: Text(
-                          "Daftar Kreen",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      )
-                      
-                    ],
-                  ),
-                ),
-                
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 40,),
           //konten page
           SingleChildScrollView(
             child: Padding(
@@ -150,6 +110,13 @@ class _RegisPageState extends State<RegisPage> {
               child: Column(
                 children: [
                   //nama lengkap
+
+                  Align(
+                    alignment: AlignmentGeometry.centerLeft,
+                    child: Text(
+                      'Nama Lengkap'
+                    ),
+                  ),
                   TextField(
                     controller: _namaController,
                     onChanged: (_) => setState(() {}),
@@ -168,6 +135,12 @@ class _RegisPageState extends State<RegisPage> {
 
                   //email 
                   const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentGeometry.centerLeft,
+                    child: Text(
+                      'Email'
+                    ),
+                  ),
                   TextField(
                     controller: _emailController,
                     onChanged: (_) => setState(() {}),
@@ -186,11 +159,21 @@ class _RegisPageState extends State<RegisPage> {
 
                   //phone
                   const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentGeometry.centerLeft,
+                    child: Text(
+                      'Nomor Handphone'
+                    ),
+                  ),
                   TextField(
                     controller: _phoneController,
                     onChanged: (_) => setState(() {}),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                     decoration: InputDecoration(
-                      hintText: 'No Phone',
+                      hintText: 'Masukkan Nomor Handphone',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -198,11 +181,22 @@ class _RegisPageState extends State<RegisPage> {
                       fillColor: Colors.grey[100],
                       enabledBorder: _border(_phoneController.text.isNotEmpty),
                       focusedBorder: _border(true),
+                      errorText: _phoneController.text.isEmpty
+                        ? null
+                        : (!isValidPhone(_phoneController.text)
+                            ? "Nomor HP harus 10-13 digit dan dimulai dengan 08"
+                            : null),
                     ),
                   ),
 
                   //password
                   const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentGeometry.centerLeft,
+                    child: Text(
+                      'Password'
+                    ),
+                  ),
                   TextField(
                     controller: _passwordController,
                     onChanged: (_) => setState(() {}),
@@ -228,6 +222,12 @@ class _RegisPageState extends State<RegisPage> {
 
                   //confirm password
                   const SizedBox(height: 16),
+                  Align(
+                    alignment: AlignmentGeometry.centerLeft,
+                    child: Text(
+                      'Confirm Password'
+                    ),
+                  ),
                   TextField(
                     controller: _confirmpasswordController,
                     onChanged: (_) => setState(() {}),
@@ -257,15 +257,20 @@ class _RegisPageState extends State<RegisPage> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isFormFilled
-                        ? Colors.red
-                        : Colors.grey,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                          if (states.contains(MaterialState.disabled)) {
+                            return Colors.grey;
+                          }
+                          return Colors.red;
+                        }),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
-                      onPressed: _isFormFilled ? _doLogin : null,
+                      onPressed: _isFormFilled ? _doRegis : null,
                       child: Text(
                         'Daftar',
                         style: TextStyle(fontSize: 16, color: Colors.white),
@@ -291,11 +296,11 @@ class _RegisPageState extends State<RegisPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: Image.asset("assets/images/img_facebook.png"),
-                        iconSize: 50,
-                      ),
+                      // IconButton(
+                      //   onPressed: () {},
+                      //   icon: Image.asset("assets/images/img_facebook.png"),
+                      //   iconSize: 50,
+                      // ),
                       const SizedBox(width: 24),
                       IconButton(
                         onPressed: () {},
@@ -306,18 +311,15 @@ class _RegisPageState extends State<RegisPage> {
                   ),
 
                   // regis
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('sudah punya akun?'),
                       GestureDetector(
                         onTap: () {
-                          // navigasi ke register
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const RegisPage()),
-                          );
+                          // navigasi kembali ke login
+                          Navigator.pop(context);
                         },
                         child: Text(
                           'masuk',

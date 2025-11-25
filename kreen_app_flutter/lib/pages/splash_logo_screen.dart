@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kreen_app_flutter/pages/home_page.dart';
+import 'package:kreen_app_flutter/services/storage_services.dart';
 import 'dart:async';
-import 'home_page.dart';
 import 'onboarding_page.dart';
 
 class SplashLogoPage extends StatefulWidget {
@@ -16,28 +16,25 @@ class _SplashLogoPageState extends State<SplashLogoPage> {
   @override
   void initState() {
     super.initState();
-    _startSplash();
+    _checkOnboarding();
   }
 
-  Future<void> _startSplash() async {
-    // tunggu 3 detik
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-
-    if (hasSeenOnboarding) {
+  Future<void> _checkOnboarding() async {
+    final seen = await StorageService.hasSeenOnboarding();
+    if (seen) {
+      // langsung ke home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
+        // MaterialPageRoute(builder: (_) => CheckingUpUserPage()),
       );
     } else {
+      // ke onboarding
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const OnboardingPage()),
       );
+      await StorageService.setOnboardingDone();
     }
   }
 

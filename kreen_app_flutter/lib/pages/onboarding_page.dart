@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import '/services/lang_service.dart';
@@ -15,6 +15,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _controller = PageController();
   int _currentPage = 0;
 
+  final prefs = FlutterSecureStorage();
+
   List<Map<String, dynamic>> pages = [];
   String dialog_title = "";
   String lewati = "";
@@ -27,44 +29,43 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void initState() {
     super.initState();
-    _loadLanguage("id"); // default bahasa indo
+    _loadLanguage("id");
   }
 
 
   //setting bahasa
   Future<void> _loadLanguage(String langCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('bahasa', 'id');
+    prefs.write(key: 'bahasa', value:  langCode);
     
     final data = await LangService.loadOnboarding(langCode);
     setState(() {
       pages = data;
     });
 
-    final data_dialog = await LangService.loadDialogTitle(langCode);
+    final data_dialog = await LangService.getText(langCode, "dialog_title");
     setState(() {
       dialog_title = data_dialog;
     });
 
 
-    final data_lewati = await LangService.loadlewati(langCode);
+    final data_lewati = await LangService.getText(langCode, "lewati");
     setState(() {
       lewati = data_lewati;
     });
-    final data_lanjut = await LangService.loadlanjut(langCode);
+    final data_lanjut = await LangService.getText(langCode, "lanjut");
     setState(() {
       lanjut = data_lanjut;
     });
-    final data_selesai = await LangService.loadselesai(langCode);
+    final data_selesai = await LangService.getText(langCode, "selesai");
     setState(() {
       selesai = data_selesai;
     });
 
-    final data_login = await LangService.loadlogin(langCode);
+    final data_login = await LangService.getText(langCode, "login");
     setState(() {
       login = data_login;
     });
-    final data_guest = await LangService.loadguest(langCode);
+    final data_guest = await LangService.getText(langCode, "guest_login");
     setState(() {
       guest = data_guest;
     });
@@ -106,7 +107,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       groupValue: tempLang,
                       onChanged: (val) async {
                         if (val != null) {
-                          final prefs = await SharedPreferences.getInstance();
                           setState(() {
                             _selectedLang = val; // update global
                           });
@@ -114,9 +114,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             tempLang = val; // update local
                           });
                           _loadLanguage(val);
-                          prefs.setString('bahasa', val);
+                          prefs.write(key: 'bahasa',value:  val);
                           Navigator.pop(context); // langsung tutup popup
-                          // TODO: ganti bahasa aplikasi disini
                         }
                       },
                       title: Row(
@@ -142,11 +141,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   Future<void> _finishOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasSeenOnboarding', true);
+    await prefs.write(key: 'hasSeenOnboarding',value:  'true');
 
     if (!mounted) return;
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
     );
@@ -164,14 +162,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   Future<void> _setOnboardingDone() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasSeenOnboarding', true);
+    await prefs.write(key: 'hasSeenOnboarding',value:  'true');
   }
 
   void _goToLogin() async {
     await _setOnboardingDone();
     if (!mounted) return;
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
     );
@@ -319,6 +316,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
 
+              SizedBox(height: 20,),
             ],
           ),
 
